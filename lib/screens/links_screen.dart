@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:laboratorio_4/screens/info_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LinksScreen extends StatefulWidget {
@@ -105,38 +106,70 @@ class _LinksScreenState extends State<LinksScreen> {
 
   String _generateLink(String name, String age, String football,
       String favoriteTeam, String location) {
-    return 'https://example.com/?name=$name&age=$age&football=$football&favoriteTeam=$favoriteTeam&location=$location';
+    String encodedName = Uri.encodeComponent(name);
+    String encodedAge = Uri.encodeComponent(age);
+    String encodedFootball = Uri.encodeComponent(football);
+    String encodedFavoriteTeam = Uri.encodeComponent(favoriteTeam);
+    String encodedLocation = Uri.encodeComponent(location);
+
+    String queryString =
+        'name=$encodedName&age=$encodedAge&football=$encodedFootball&favoriteTeam=$encodedFavoriteTeam&location=$encodedLocation';
+
+    String link = 'myapp://example.com/?$queryString';
+
+    return link;
   }
 
-  void _launchTelegram(String link) async {
-  String encodedLink = Uri.encodeComponent(link);
-  String telegramUrl = 'tg://msg?text=$encodedLink';
+  void _parseLink(Uri uri) {
+    String name = uri.queryParameters['name'] ?? '';
+    String age = uri.queryParameters['age'] ?? '';
+    String football = uri.queryParameters['football'] ?? '';
+    String favoriteTeam = uri.queryParameters['favoriteTeam'] ?? '';
+    String location = uri.queryParameters['location'] ?? '';
 
-  try {
-    if (await canLaunch(telegramUrl)) {
-      print('Telegram launch condition met');
-      await launch(telegramUrl);
-    } else {
-      throw 'No se puede abrir Telegram';
-    }
-  } catch (e) {
-    String errorMessage = 'Error al abrir Telegram: $e';
-    print(errorMessage);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Error'),
-        content: Text(errorMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
-          ),
-        ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LinkInfoScreen(
+          name: name,
+          age: age,
+          football: football,
+          favoriteTeam: favoriteTeam,
+          location: location,
+        ),
       ),
     );
   }
-}
 
+  void _launchTelegram(String link) async {
+    String encodedLink = Uri.encodeComponent(link);
+    String telegramUrl = 'tg://msg?text=$encodedLink';
+
+    try {
+      if (await canLaunch(telegramUrl)) {
+        print('Telegram launch condition met');
+        await launch(telegramUrl, forceSafariVC: false);
+        Navigator.pushNamed(context, '/link-info', arguments: link);
+      } else {
+        throw 'No se puede abrir Telegram';
+      }
+    } catch (e) {
+      String errorMessage = 'Error al abrir Telegram: $e';
+      print(errorMessage);
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Error'),
+          content: Text(errorMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 }

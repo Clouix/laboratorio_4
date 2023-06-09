@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laboratorio_4/screens/info_screen.dart';
 import 'package:laboratorio_4/screens/links_screen.dart';
 
 void main() {
@@ -18,7 +19,24 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: LinksScreen(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => LinksScreen(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/link-info') {
+          final uri = Uri.parse(settings.arguments as String);
+          return MaterialPageRoute(
+            builder: (context) => LinkInfoScreen(
+              name: uri.queryParameters['name'] ?? '',
+              age: uri.queryParameters['age'] ?? '',
+              football: uri.queryParameters['football'] ?? '',
+              favoriteTeam: uri.queryParameters['favoriteTeam'] ?? '',
+              location: uri.queryParameters['location'] ?? '',
+            ),
+          );
+        }
+      },
     );
   }
 }
